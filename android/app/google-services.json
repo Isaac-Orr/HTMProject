@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "236658718384",
+    "firebase_url": "https://moneyshare-377c5.firebaseio.com",
+    "project_id": "moneyshare-377c5",
+    "storage_bucket": "moneyshare-377c5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:236658718384:android:3b92dec94e24f287b3ad75",
+        "android_client_info": {
+          "package_name": "com.moneyshare.moneyshare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "236658718384-fiu2cbp130mpkqdndks9bdlek04rbui3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.moneyshare.moneyshare",
+            "certificate_hash": "b2dbdaaee50696fef8b8b09a1df86d3ec744d805"
+          }
+        },
+        {
+          "client_id": "236658718384-1iv25np8p209jk79d76rbntkl5dsfkhi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJuCWTO7Dgka2bHFdyS_uimGdJrQh3SCI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "236658718384-1iv25np8p209jk79d76rbntkl5dsfkhi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
