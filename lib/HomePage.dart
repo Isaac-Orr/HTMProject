@@ -25,16 +25,18 @@ class _HomePageState extends State<HomePage> {
             appBar: AppBar(
               title: Text("This is a title"),
             ),
-            body:Row(crossAxisAlignment: CrossAxisAlignment.start,children: [
-
+            body: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Container(
                   height: MediaQuery.of(context).size.height * .7,
                   width: MediaQuery.of(context).size.width,
                   child: cameraPreviewScreen(camera.data),
                 ),
-
-            ],),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+              ],
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
             floatingActionButton: Stack(
               fit: StackFit.expand,
               children: <Widget>[
@@ -60,7 +62,6 @@ class _HomePageState extends State<HomePage> {
                 )
               ],
             ));
-
       },
     );
     throw UnimplementedError();
@@ -71,7 +72,7 @@ class _HomePageState extends State<HomePage> {
       // Get a specific camera from the list of available cameras.
       camera,
       // Define the resolution to use.
-      ResolutionPreset.medium,
+      ResolutionPreset.veryHigh,
     );
 
     _initializeControllerFuture = _controller.initialize();
@@ -137,25 +138,97 @@ class _HomePageState extends State<HomePage> {
 
     String text = visionDocumentText.text;
 
-    print("BOOOGIEEEE" + text);
-
+    List<String> stringList = new List<String>();
     for (DocumentTextBlock block in visionDocumentText.blocks) {
       final Rect boundingBox = block.boundingBox;
       final String text = block.text;
       final List<RecognizedLanguage> languages = block.recognizedLanguages;
       final DocumentTextRecognizedBreak = block.recognizedBreak;
 
-      for (DocumentTextParagraph paragraph in block.paragraphs) {
-        // Same getters as DocumentTextBlock
-        for (DocumentTextWord word in paragraph.words) {
-          // Same getters as DocumentTextBlock
-          for (DocumentTextSymbol symbol in word.symbols) {
-            // Same getters as DocumentTextBlock
+      for (int i = 0; i < block.paragraphs.length; i++) {
+        DocumentTextParagraph currentParagraph = block.paragraphs.elementAt(i);
+        for (int j = 0; j < currentParagraph.words.length; j++) {
+          DocumentTextWord currentWord = currentParagraph.words.elementAt(j);
+
+          if (currentWord.text.contains("%") || currentWord.text.contains("ml") ||
+              currentWord.text.contains("ML") ||
+              currentWord.text.contains("Ml")) {
+            if (j > 0 && stringList.length > 0) {
+              if (!isRightCurrencyFormat(
+                  stringList.elementAt(stringList.length - 1))) {
+                print("Removing bc of percent" +
+                    stringList.elementAt(stringList.length - 1));
+                stringList.removeLast();
+              }
+            }
+            continue;
+          }
+
+          if (currentWord.text.startsWith("£")) {
+            print(currentWord.text);
+            if (currentWord.text.length == 1 &&
+                currentParagraph.words.length < j + 1 &&
+                currentParagraph.words.elementAt(j + 1).text != null) {
+              String newWord = currentWord.text +
+                  currentParagraph.words.elementAt(j + 1).text;
+              String sanatisedPrice = checkWordLengthAndSanatise(newWord, currentWord);
+              if (sanatisedPrice != null) {
+                print("Break Type" + currentWord.recognizedBreak.detectedBreakType.index.toString());
+                stringList.add(sanatisedPrice);
+                j++;
+              }
+              continue;
+            }
+          } else if (double.tryParse(currentWord.text) != null) {
+            String sanatisedPrice = checkWordLengthAndSanatise(currentWord.text, currentWord);
+            if (sanatisedPrice != null) {
+              stringList.add(sanatisedPrice);
+            }
           }
         }
       }
     }
 
+    print(stringList.toString());
     cloudDocumentTextRecognizer.close();
   }
-}
+
+  checkWordLengthAndSanatise(String word, DocumentTextWord documentTextWord) {
+    print("Going in to sanatiser " + word);
+
+    if(documentTextWord.recognizedBreak != null && documentTextWord.recognizedBreak.detectedBreakType != null) {
+      print("Break Type " +
+          documentTextWord.recognizedBreak.detectedBreakType.index.toString());
+    }
+      if (word.length == 4 && word.indexOf(".") == 1
+          && documentTextWord.recognizedBreak.detectedBreakType.index != 1
+          && documentTextWord.recognizedBreak.detectedBreakType.index != 2
+          && documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
+        print(4);
+        return word;
+      } else if (word.length == 5 && word.indexOf(".") == 2
+          && documentTextWord.recognizedBreak.detectedBreakType.index != 1
+          && documentTextWord.recognizedBreak.detectedBreakType.index != 2
+          && documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
+        print(5);
+        word = word.substring(1);
+        return word;
+      } else {
+        return null;
+      }
+    }
+  }
+
+
+  /*createEntryWithName(String price, DocumentTextWord priceWord, int priceIndex, DocumentTextParagraph paragraph, int paragraphIndex){
+    int wordHeight = priceWord.recognizedBreak.detectedBreakType.index;
+    for(int i = priceIndex;i<)
+  }*/
+
+  bool isRightCurrencyFormat(String word) {
+    if (word.length == 4 && word.indexOf(".") == 1) {
+      return true;
+    }
+    return false;
+  }
+
