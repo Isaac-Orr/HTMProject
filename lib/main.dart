@@ -17,6 +17,12 @@ class Drink{
     double alc = percent * amount;
     this.value = alc/price/10;
   }
+
+  String toString()
+  {
+    return this.name + " " + this.price.toString() +
+        " " + this.percent.toString() + " " + this.value.toString();
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -160,4 +166,8 @@ void _getDrinks() async {
     }
 
   }
+  Comparator<Drink> compareValue = (a,b) => a.value.compareTo(b.value);
+  result.sort(compareValue);
 }
+
+
