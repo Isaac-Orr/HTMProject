@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(
                   child: RichText(text: TextSpan(text: "Show Results", style: TextStyle(color: Colors.teal))),
-                  onPressed: showResults(context),
+                  onPressed: () {showResults(context);},
                 ),
               ],
             ),
