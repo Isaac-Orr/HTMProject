@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'ResultsPage.dart';
+
 class HomePage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -25,13 +27,17 @@ class _HomePageState extends State<HomePage> {
             appBar: AppBar(
               title: Text("This is a title"),
             ),
-            body: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            body: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   height: MediaQuery.of(context).size.height * .7,
                   width: MediaQuery.of(context).size.width,
                   child: cameraPreviewScreen(camera.data),
+                ),
+                ElevatedButton(
+                  child: RichText(text: TextSpan(text: "Show Results", style: TextStyle(color: Colors.teal))),
+                  onPressed: showResults(context),
                 ),
               ],
             ),
@@ -65,6 +71,10 @@ class _HomePageState extends State<HomePage> {
       },
     );
     throw UnimplementedError();
+  }
+
+  showResults(BuildContext context){
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ResultsPage()));
   }
 
   FutureBuilder cameraPreviewScreen(CameraDescription camera) {
