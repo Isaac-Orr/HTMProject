@@ -13,7 +13,7 @@ class Drink {
   double value; //Units per pound
 
   Drink(this.name, this.price, this.amount, this.percent) {
-    double alc = percent * amount;
+    double alc = (percent/100) * amount;
     this.value = alc / price / 10;
   }
 
