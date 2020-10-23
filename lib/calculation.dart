@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-FireStore _fireStoreInstance = Firestore.instance;
+import 'package:firebase_core/firebase_core.dart';
 
 class Drink{
   String name;
@@ -15,27 +14,28 @@ class Drink{
   }
 }
 
-void getDrinks(Set names){
-  var collectionReference = _fireStoreInstance.collection('Drinks');
-  List<Drink> result = [];
+  void _getDrinks() async {
+    FirebaseApp firebase = await Firebase.initializeApp();
+    FirebaseFirestore _fireStoreInstance = FirebaseFirestore.instance;
 
-  for(int i = 0; i < names.length; i++){
-     String name = names.elementAt(i);
-     var query = collectionReference.where("Name", "==", name);
+    var collectionReference = _fireStoreInstance.collection('Drinks');
+    List<Drink> result = [];
 
-     QuerySnapshot snap = await query.getDocuments();
+    for(int i = 0; i < 1; i++){
+      //String name = names.elementAt(i);
+      var query = collectionReference.where("Name", isEqualTo: "Hopstach");
 
-     if(snap.documents.lenght > 0){
-       for(DocumentSnapshot j in snap.documents){
-         result.add(new Drink(j.data["name"], 3, 500, j.data["percent"])); //need to read the price and the amount from the menu
-       }
-     }
+      QuerySnapshot snap = await query.get();
 
+      if(snap.docs.isNotEmpty){
+        for(DocumentSnapshot j in snap.docs){
+          Drink drink = new Drink(j.get("name"), 3, 500, j.get("%"));
+          result.add(drink); //need to read the price and the amount from the menu
+          print(drink);
+        }
+      }
 
-
-
+    }
   }
 
 
-
-}
