@@ -138,6 +138,8 @@ class _HomePageState extends State<HomePage> {
     return path;
   }
 
+  List<DocumentTextParagraph> allParagraphs = new List<DocumentTextParagraph>();
+
   getTextFromPicture(String path) async {
     final File imageFile = File(path);
 
@@ -153,55 +155,60 @@ class _HomePageState extends State<HomePage> {
     String text = visionDocumentText.text;
 
     List<String> stringList = new List<String>();
-    for (DocumentTextBlock block in visionDocumentText.blocks) {
-      final Rect boundingBox = block.boundingBox;
-      final String text = block.text;
-      final List<RecognizedLanguage> languages = block.recognizedLanguages;
-      final DocumentTextRecognizedBreak = block.recognizedBreak;
 
-      cleanPargraphs(block, 0);
+    //adds all paragraphs in to single list
+    for (int i = 0; i < visionDocumentText.blocks.length; i++) {
+      DocumentTextBlock currentBlock = visionDocumentText.blocks.elementAt(i);
+      for (int j = 0; j < currentBlock.paragraphs.length; j++) {
+        allParagraphs.add(currentBlock.paragraphs.elementAt(j));
+      }
+    }
 
-      for (int i = 0; i < block.paragraphs.length; i++) {
-        DocumentTextParagraph currentParagraph = block.paragraphs.elementAt(i);
-        for (int j = 0; j < currentParagraph.words.length; j++) {
-          DocumentTextWord currentWord = currentParagraph.words.elementAt(j);
+    for (int i = 0; i < allParagraphs.length; i++) {
+      DocumentTextParagraph currentParagraph = allParagraphs.elementAt(i);
+      for (int j = 0; j < currentParagraph.words.length; j++) {
+        DocumentTextWord currentWord = currentParagraph.words.elementAt(j);
 
-          if (currentWord.text.contains("%") || currentWord.text.contains("ml") ||
-              currentWord.text.contains("ML") ||
-              currentWord.text.contains("Ml")) {
-            if (j > 0 && stringList.length > 0) {
-              if (!isRightCurrencyFormat(
-                  stringList.elementAt(stringList.length - 1))) {
-                print("Removing bc of percent" +
-                    stringList.elementAt(stringList.length - 1));
-                stringList.removeLast();
-              }
+        if (currentWord.text.contains("%") ||
+            currentWord.text.contains("ml") ||
+            currentWord.text.contains("ML") ||
+            currentWord.text.contains("Ml")) {
+          if (j > 0 && stringList.length > 0) {
+            if (!isRightCurrencyFormat(
+                stringList.elementAt(stringList.length - 1))) {
+              print("Removing bc of percent" +
+                  stringList.elementAt(stringList.length - 1));
+              stringList.removeLast();
+            }
+          }
+          continue;
+        }
+
+        if (currentWord.text.startsWith("£")) {
+          print(currentWord.text);
+          if (currentWord.text.length == 1 &&
+              currentParagraph.words.length < j + 1 &&
+              currentParagraph.words.elementAt(j + 1).text != null) {
+            String newWord =
+                currentWord.text + currentParagraph.words.elementAt(j + 1).text;
+            String sanatisedPrice =
+                checkWordLengthAndSanatise(newWord, currentWord);
+            if (sanatisedPrice != null) {
+              print("Break Type" +
+                  currentWord.recognizedBreak.detectedBreakType.index
+                      .toString());
+              stringList.add(sanatisedPrice);
+              createEntryWithName(sanatisedPrice, j, currentParagraph,i);
+              j++;
             }
             continue;
           }
-
-          if (currentWord.text.startsWith("£")) {
-            print(currentWord.text);
-            if (currentWord.text.length == 1 &&
-                currentParagraph.words.length < j + 1 &&
-                currentParagraph.words.elementAt(j + 1).text != null) {
-              String newWord = currentWord.text +
-                  currentParagraph.words.elementAt(j + 1).text;
-              String sanatisedPrice = checkWordLengthAndSanatise(newWord, currentWord);
-              if (sanatisedPrice != null) {
-                print("Break Type" + currentWord.recognizedBreak.detectedBreakType.index.toString());
-                stringList.add(sanatisedPrice);
-                createEntryWithName(sanatisedPrice, j, currentParagraph, i, block);
-                j++;
-              }
-              continue;
-            }
-          } else if (double.tryParse(currentWord.text) != null) {
-            String sanatisedPrice = checkWordLengthAndSanatise(currentWord.text, currentWord);
-            if (sanatisedPrice != null) {
-              stringList.add(sanatisedPrice);
-              createEntryWithName(sanatisedPrice, j, currentParagraph, i, block);
-            }
+        } else if (double.tryParse(currentWord.text) != null) {
+          String sanatisedPrice =
+              checkWordLengthAndSanatise(currentWord.text, currentWord);
+          if (sanatisedPrice != null) {
+            stringList.add(sanatisedPrice);
+            createEntryWithName(sanatisedPrice, j, currentParagraph, i);
           }
         }
       }
@@ -216,52 +223,57 @@ class _HomePageState extends State<HomePage> {
   checkWordLengthAndSanatise(String word, DocumentTextWord documentTextWord) {
     print("Going in to sanatiser " + word);
 
-    if(documentTextWord.recognizedBreak != null && documentTextWord.recognizedBreak.detectedBreakType != null) {
+    if (documentTextWord.recognizedBreak != null &&
+        documentTextWord.recognizedBreak.detectedBreakType != null) {
       print("Break Type " +
           documentTextWord.recognizedBreak.detectedBreakType.index.toString());
     }
-      if (word.length == 4 && word.indexOf(".") == 1
-          && documentTextWord.recognizedBreak.detectedBreakType.index != 1
-          && documentTextWord.recognizedBreak.detectedBreakType.index != 2
-          && documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
-        print(4);
-        return word;
-      } else if (word.length == 5 && word.indexOf(".") == 2
-          && documentTextWord.recognizedBreak.detectedBreakType.index != 1
-          && documentTextWord.recognizedBreak.detectedBreakType.index != 2
-          && documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
-        print(5);
-        word = word.substring(1);
-        return word;
-      } else {
-        return null;
-      }
+    if (word.length == 4 &&
+        word.indexOf(".") == 1 &&
+        documentTextWord.recognizedBreak != null &&
+        documentTextWord.recognizedBreak.detectedBreakType.index != 1 &&
+        documentTextWord.recognizedBreak.detectedBreakType.index != 2 &&
+        documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
+      print(4);
+      return word;
+    } else if (word.length == 5 &&
+        word.indexOf(".") == 2 &&
+        documentTextWord.recognizedBreak != null &&
+        documentTextWord.recognizedBreak.detectedBreakType.index != 1 &&
+        documentTextWord.recognizedBreak.detectedBreakType.index != 2 &&
+        documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
+      print(5);
+      word = word.substring(1);
+      return word;
+    } else {
+      return null;
     }
   }
 
   List<List<String>> priceNameSorted = new List<List<String>>();
 
-  cleanPargraphs(DocumentTextBlock documentTextBlock, int startingParagraphIndex){
-      for(int i = 0;i<documentTextBlock.paragraphs.length;i++){
-        //print("Paragraph" + documentTextBlock.paragraphs.elementAt(i).text + "Has Length" + documentTextBlock.paragraphs.elementAt(i).words.length.toString());
-      }
-  }
-
-  createEntryWithName(String price, int priceIndex, DocumentTextParagraph paragraph, int paragraphIndex, DocumentTextBlock documentTextBlock){
+  createEntryWithName(
+      String price, int priceIndex, DocumentTextParagraph paragraph, int oldParagraphIndex) {
     print("Working with price " + price);
+    print("Paragraph found is " + paragraph.text);
     int i = 0;
     List<String> list = new List<String>();
 
-    Rect priceBounding = paragraph.words.elementAt(priceIndex).boundingBox;    //gets the bounding of the price we're trying to find the name for
+    Rect priceBounding = paragraph.words
+        .elementAt(priceIndex)
+        .boundingBox; //gets the bounding of the price we're trying to find the name for
 
-    SplayTreeMap<double, DocumentTextParagraph> sortingParasByOverlap = new SplayTreeMap();
+    SplayTreeMap<double, DocumentTextParagraph> sortingParasByOverlap =
+        new SplayTreeMap();
 
-    int j = 0;
+    int paragraphIndex = 0;
 
-    paragraphIndex = 0;
-
-    while(paragraphIndex < documentTextBlock.paragraphs.length){
-      paragraph = documentTextBlock.paragraphs.elementAt(paragraphIndex);
+    while (paragraphIndex < allParagraphs.length) {
+      if(paragraphIndex == oldParagraphIndex){
+        paragraphIndex++;
+        continue;
+      }
+      paragraph = allParagraphs.elementAt(paragraphIndex);
 
       Rect paragraphBounding = paragraph.words.last.boundingBox;
 
@@ -272,24 +284,43 @@ class _HomePageState extends State<HomePage> {
       //print("paragraph POINTS before " + paragraphBounding.left.toString());
       //print("TEMPPRICEBOUNDING POINTS before" + tempPriceBounding.left.toString());
       //print("REQUIREDLEFTSHIFT "+ requiredLeftShift.toString());
-      tempPriceBounding = new Rect.fromLTRB(tempPriceBounding.left - requiredLeftShift, tempPriceBounding.top, tempPriceBounding.right - requiredLeftShift, tempPriceBounding.bottom);
+      tempPriceBounding = new Rect.fromLTRB(
+          tempPriceBounding.left - requiredLeftShift,
+          tempPriceBounding.top,
+          tempPriceBounding.right - requiredLeftShift,
+          tempPriceBounding.bottom);
       //print("paragraph POINTS " + paragraphBounding.left.toString());
       //print("TEMPPRICEBOUNDING POINTS " + tempPriceBounding.left.toString());
       Rect intersection = tempPriceBounding.intersect(paragraphBounding);
 
-      double currentAreaOfIntersection = intersection.width * intersection.height;
+      double currentAreaOfIntersection =
+          intersection.width * intersection.height;
 
       //print("Overlap is " + currentAreaOfIntersection.toString() + "For Paragraph " + paragraph.text);
       sortingParasByOverlap[currentAreaOfIntersection] = paragraph;
       paragraphIndex++;
     }
 
+
     DocumentTextParagraph overlapParagraph = sortingParasByOverlap.values.last;
-    print("BIGGEST OVERLAP PARA WAS " + sortingParasByOverlap.values.last.text + "FOR PRICE " + price);
+    print("BIGGEST OVERLAP PARA WAS " +
+        sortingParasByOverlap.values.last.text +
+        "FOR PRICE " +
+        price);
+
+    while (i < overlapParagraph.words.length &&
+        list.length < 4 &&
+        (overlapParagraph.words.elementAt(i).recognizedBreak == null ||
+            overlapParagraph.words
+                    .elementAt(i)
+                    .recognizedBreak
+                    .detectedBreakType
+                    .index !=
+                2)) {
 
 
-    while(i < overlapParagraph.words.length && list.length<4 && (overlapParagraph.words.elementAt(i).recognizedBreak == null || overlapParagraph.words.elementAt(i).recognizedBreak.detectedBreakType.index != 2)){
-      if(overlapParagraph.words.elementAt(i).text.trim().startsWith(new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))){
+      if (overlapParagraph.words.elementAt(i).text.trim().startsWith(
+          new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))) {
         print(overlapParagraph.words.elementAt(i).text + "Matches");
         print("List before " + list.toString());
         list.add(overlapParagraph.words.elementAt(i).text);
@@ -298,8 +329,11 @@ class _HomePageState extends State<HomePage> {
       i++;
     }
 
-    if(i < overlapParagraph.words.length && list.length<4 && overlapParagraph.words.elementAt(i) != null){
-      if(overlapParagraph.words.elementAt(i).text.trim().startsWith(new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))){
+    if (i < overlapParagraph.words.length &&
+        list.length < 4 &&
+        overlapParagraph.words.elementAt(i) != null) {
+      if (overlapParagraph.words.elementAt(i).text.trim().startsWith(
+          new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))) {
         print(overlapParagraph.words.elementAt(i).text + "Matches");
         print("List before " + list.toString());
         list.add(overlapParagraph.words.elementAt(i).text);
@@ -308,7 +342,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     list.insert(0, price);
-
 
     priceNameSorted.add(list);
   }
@@ -319,4 +352,4 @@ class _HomePageState extends State<HomePage> {
     }
     return false;
   }
-
+}
