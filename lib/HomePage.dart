@@ -89,8 +89,8 @@ class _HomePageState extends State<HomePage> {
       title: Text("Find Alchohol In Image?"),
       content: Image.file(File(imagePath)),
       actions: [
-        FlatButton(onPressed: () => {getTextFromPicture(imagePath), Navigator.pop(context)}, child: Text("Yes")),
-        FlatButton(onPressed: () => Navigator.pop(context), child: Text("No")),],
+        FlatButton(color: Colors.green ,onPressed: () => {getTextFromPicture(imagePath), Navigator.pop(context)}, child: Text("Yes")),
+        FlatButton(color: Colors.red ,onPressed: () => Navigator.pop(context), child: Text("No")),],
     );
   }
   FutureBuilder cameraPreviewScreen(CameraDescription camera) {
