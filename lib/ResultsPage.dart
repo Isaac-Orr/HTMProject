@@ -9,12 +9,12 @@ class Drink {
   String name;
   double price; //1.0 for pound
   double amount; //ml
-  double percent; //0.5 = 50%
+  double percent ; //0.5 = 50%
   double value; //Units per pound
 
   Drink(this.name, this.price, this.amount, this.percent) {
     print("B:LAH" + this.name);
-    print(this.amount);
+    print("BHAL" + this.amount.toString());
     double alc = (percent/100) * amount;
     this.value = alc / price / 10;
   }
@@ -57,16 +57,17 @@ class _ResultsPageState extends State<ResultsPage> {
     List<Drink> result = [];
     print("Length of fromMenu drinks is " + this.fromMenu.length.toString());
     for (int i = 0; i < this.fromMenu.length; i++) {
-      print(i.toString());
-
+      print("iteration" + i.toString());
+      if(this.fromMenu.elementAt(i).length > 1){
       String name = this.fromMenu.elementAt(i).elementAt(1);
-      print(name);
+      print("Searching for " + name);
       var query = collectionReference.where("Name", isEqualTo: name);
       print("awaiting query");
       QuerySnapshot snap = await query.get();
       print("queryreturns");
       if (snap.docs.isNotEmpty) {
         print("Query not empty, data gained");
+        print("NUMBER OF DOCS IS" + snap.docs.length.toString());
         for (DocumentSnapshot j in snap.docs) {
           double amount = 568;
           if (j.get("Type") == "Beer") {
@@ -78,14 +79,18 @@ class _ResultsPageState extends State<ResultsPage> {
           print("drink creating");
           print(j.get("Name"));
           print(j.get("%"));
-          Drink drink = new Drink(j.get("Name"), 3, amount, j.get("%"));
-          print(result.length);
+          //Drink drink = new Drink(j.get("Name"), double.parse(this.fromMenu.elementAt(i).elementAt(0)), amount, j.get("%"));
+          Drink drink = new Drink(j.get("Name"), 3.23, 568, double.parse(j.get("%").toString()));
+          print("drink added");
           result.add(drink); //need to read the price and the amount from the menu
           print(drink.name + " " + drink.percent.toString() + " " +
               drink.value.toString());
         }
+      } else{
+        print("no match in db");
       }
-    }
+
+    }}
     print(result.length);
     Comparator<Drink> compareValue = (a, b) => a.value.compareTo(b.value);
     result.sort(compareValue);
@@ -118,11 +123,11 @@ class _ResultsPageState extends State<ResultsPage> {
                         .size
                         .height * 0.7,
                     child: ListView.builder(
-                      itemCount: 1,
+                      itemCount: drinksList.data.length,
                       itemBuilder: (context, index) {
-                      print(drinksList.data);
+                      print(drinksList.data[index]);
                       print("test 1");
-                      final Drink drink = drinksList.data[1];
+                      final Drink drink = drinksList.data[index];
 
                       return ListTile(
                         title: Text(drink.name),
