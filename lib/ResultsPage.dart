@@ -81,7 +81,7 @@ class _ResultsPageState extends State<ResultsPage> {
           print(j.get("Name"));
           print(j.get("%"));
           //Drink drink = new Drink(j.get("Name"), double.parse(this.fromMenu.elementAt(i).elementAt(0)), amount, j.get("%"));
-          Drink drink = new Drink(j.get("Name"), 3.23, 568, double.parse(j.get("%").toString()));
+          Drink drink = new Drink(j.get("Name"), double.parse(this.fromMenu.elementAt(i).elementAt(0)), amount, double.parse(j.get("%").toString()));
           print("drink added");
           result.add(drink); //need to read the price and the amount from the menu
           print(drink.name + " " + drink.percent.toString() + " " +
