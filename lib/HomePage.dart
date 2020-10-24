@@ -1,4 +1,8 @@
+import 'dart:collection';
+import 'dart:core';
 import 'dart:io';
+import 'dart:math';
+import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
@@ -145,6 +149,8 @@ class _HomePageState extends State<HomePage> {
       final List<RecognizedLanguage> languages = block.recognizedLanguages;
       final DocumentTextRecognizedBreak = block.recognizedBreak;
 
+      cleanPargraphs(block, 0);
+
       for (int i = 0; i < block.paragraphs.length; i++) {
         DocumentTextParagraph currentParagraph = block.paragraphs.elementAt(i);
         for (int j = 0; j < currentParagraph.words.length; j++) {
@@ -175,6 +181,7 @@ class _HomePageState extends State<HomePage> {
               if (sanatisedPrice != null) {
                 print("Break Type" + currentWord.recognizedBreak.detectedBreakType.index.toString());
                 stringList.add(sanatisedPrice);
+                createEntryWithName(sanatisedPrice, j, currentParagraph, i, block);
                 j++;
               }
               continue;
@@ -183,6 +190,7 @@ class _HomePageState extends State<HomePage> {
             String sanatisedPrice = checkWordLengthAndSanatise(currentWord.text, currentWord);
             if (sanatisedPrice != null) {
               stringList.add(sanatisedPrice);
+              createEntryWithName(sanatisedPrice, j, currentParagraph, i, block);
             }
           }
         }
@@ -190,6 +198,8 @@ class _HomePageState extends State<HomePage> {
     }
 
     print(stringList.toString());
+    print(priceNameSorted);
+
     cloudDocumentTextRecognizer.close();
   }
 
@@ -219,11 +229,79 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  List<List<String>> priceNameSorted = new List<List<String>>();
 
-  /*createEntryWithName(String price, DocumentTextWord priceWord, int priceIndex, DocumentTextParagraph paragraph, int paragraphIndex){
-    int wordHeight = priceWord.recognizedBreak.detectedBreakType.index;
-    for(int i = priceIndex;i<)
-  }*/
+  cleanPargraphs(DocumentTextBlock documentTextBlock, int startingParagraphIndex){
+      for(int i = 0;i<documentTextBlock.paragraphs.length;i++){
+        //print("Paragraph" + documentTextBlock.paragraphs.elementAt(i).text + "Has Length" + documentTextBlock.paragraphs.elementAt(i).words.length.toString());
+      }
+  }
+
+  createEntryWithName(String price, int priceIndex, DocumentTextParagraph paragraph, int paragraphIndex, DocumentTextBlock documentTextBlock){
+    print("Working with price " + price);
+    int i = 0;
+    List<String> list = new List<String>();
+
+    Rect priceBounding = paragraph.words.elementAt(priceIndex).boundingBox;    //gets the bounding of the price we're trying to find the name for
+
+    SplayTreeMap<double, DocumentTextParagraph> sortingParasByOverlap = new SplayTreeMap();
+
+    int j = 0;
+
+    paragraphIndex = 0;
+
+    while(paragraphIndex < documentTextBlock.paragraphs.length){
+      paragraph = documentTextBlock.paragraphs.elementAt(paragraphIndex);
+
+      Rect paragraphBounding = paragraph.words.last.boundingBox;
+
+      double requiredLeftShift = priceBounding.right - paragraphBounding.right;
+
+      Rect tempPriceBounding = priceBounding;
+      //print("OPERATING ON PARAGRAPH " + paragraph.text);
+      //print("paragraph POINTS before " + paragraphBounding.left.toString());
+      //print("TEMPPRICEBOUNDING POINTS before" + tempPriceBounding.left.toString());
+      //print("REQUIREDLEFTSHIFT "+ requiredLeftShift.toString());
+      tempPriceBounding = new Rect.fromLTRB(tempPriceBounding.left - requiredLeftShift, tempPriceBounding.top, tempPriceBounding.right - requiredLeftShift, tempPriceBounding.bottom);
+      //print("paragraph POINTS " + paragraphBounding.left.toString());
+      //print("TEMPPRICEBOUNDING POINTS " + tempPriceBounding.left.toString());
+      Rect intersection = tempPriceBounding.intersect(paragraphBounding);
+
+      double currentAreaOfIntersection = intersection.width * intersection.height;
+
+      //print("Overlap is " + currentAreaOfIntersection.toString() + "For Paragraph " + paragraph.text);
+      sortingParasByOverlap[currentAreaOfIntersection] = paragraph;
+      paragraphIndex++;
+    }
+
+    DocumentTextParagraph overlapParagraph = sortingParasByOverlap.values.last;
+    print("BIGGEST OVERLAP PARA WAS " + sortingParasByOverlap.values.last.text + "FOR PRICE " + price);
+
+
+    while(i < overlapParagraph.words.length && list.length<4 && (overlapParagraph.words.elementAt(i).recognizedBreak == null || overlapParagraph.words.elementAt(i).recognizedBreak.detectedBreakType.index != 2)){
+      if(overlapParagraph.words.elementAt(i).text.trim().startsWith(new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))){
+        print(overlapParagraph.words.elementAt(i).text + "Matches");
+        print("List before " + list.toString());
+        list.add(overlapParagraph.words.elementAt(i).text);
+        print("List After " + list.toString());
+      }
+      i++;
+    }
+
+    if(i < overlapParagraph.words.length && list.length<4 && overlapParagraph.words.elementAt(i) != null){
+      if(overlapParagraph.words.elementAt(i).text.trim().startsWith(new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))){
+        print(overlapParagraph.words.elementAt(i).text + "Matches");
+        print("List before " + list.toString());
+        list.add(overlapParagraph.words.elementAt(i).text);
+        print("List After " + list.toString());
+      }
+    }
+
+    list.insert(0, price);
+
+
+    priceNameSorted.add(list);
+  }
 
   bool isRightCurrencyFormat(String word) {
     if (word.length == 4 && word.indexOf(".") == 1) {
