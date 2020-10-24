@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   showResults(BuildContext context){
-    Navigator.push(context, MaterialPageRoute(builder: (context) => ResultsPage()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ResultsPage(priceNameSorted)));
   }
 
   FutureBuilder cameraPreviewScreen(CameraDescription camera) {
