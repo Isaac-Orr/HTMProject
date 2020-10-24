@@ -332,7 +332,11 @@ class _HomePageState extends State<HomePage> {
     }
 
     list.insert(0, price);
-
+    for (int position = 0; position<list.length; position++){
+      if (list.elementAt(position).startsWith("ABV")  || list.elementAt(position).startsWith("ASV") || list.elementAt(position).startsWith("ARV")) {
+        list.removeAt(position);
+      }
+    }
     priceNameSorted.add(list);
   }
 
