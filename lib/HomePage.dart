@@ -8,6 +8,7 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:quiver/collection.dart';
 
 import 'ResultsPage.dart';
 
@@ -61,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                         // Take the Picture in a try / catch block. If anything goes wrong, catch error
                         try {
                           String path = await takePicture();
-                          getTextFromPicture(path);
+                          showDialog(context: context, builder: (_) => showPicturePreview(path, context), barrierDismissible: false);
                         } catch (e) {
                           // If an error occurs, log the error to the console.
                           print(e);
@@ -81,6 +82,16 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => ResultsPage(priceNameSorted)));
   }
 
+
+  showPicturePreview(String imagePath, BuildContext context){
+    return AlertDialog(
+      title: Text("Find Alchohol In Image?"),
+      content: Image.file(File(imagePath)),
+      actions: [
+        FlatButton(onPressed: () => {getTextFromPicture(imagePath), Navigator.pop(context)}, child: Text("Yes")),
+        FlatButton(onPressed: () => Navigator.pop(context), child: Text("No")),],
+    );
+  }
   FutureBuilder cameraPreviewScreen(CameraDescription camera) {
     _controller = CameraController(
       // Get a specific camera from the list of available cameras.
@@ -152,8 +163,6 @@ class _HomePageState extends State<HomePage> {
     final VisionDocumentText visionDocumentText =
         await cloudDocumentTextRecognizer.processImage(visionImage);
 
-    String text = visionDocumentText.text;
-
     List<String> stringList = new List<String>();
 
     //adds all paragraphs in to single list
@@ -221,12 +230,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   checkWordLengthAndSanatise(String word, DocumentTextWord documentTextWord) {
-    print("Going in to sanatiser " + word);
+
 
     if (documentTextWord.recognizedBreak != null &&
         documentTextWord.recognizedBreak.detectedBreakType != null) {
-      print("Break Type " +
-          documentTextWord.recognizedBreak.detectedBreakType.index.toString());
+
     }
     if (word.length == 4 &&
         word.indexOf(".") == 1 &&
@@ -254,8 +262,6 @@ class _HomePageState extends State<HomePage> {
 
   createEntryWithName(
       String price, int priceIndex, DocumentTextParagraph paragraph, int oldParagraphIndex) {
-    print("Working with price " + price);
-    print("Paragraph found is " + paragraph.text);
     int i = 0;
     List<String> list = new List<String>();
 
@@ -280,33 +286,22 @@ class _HomePageState extends State<HomePage> {
       double requiredLeftShift = priceBounding.right - paragraphBounding.right;
 
       Rect tempPriceBounding = priceBounding;
-      //print("OPERATING ON PARAGRAPH " + paragraph.text);
-      //print("paragraph POINTS before " + paragraphBounding.left.toString());
-      //print("TEMPPRICEBOUNDING POINTS before" + tempPriceBounding.left.toString());
-      //print("REQUIREDLEFTSHIFT "+ requiredLeftShift.toString());
       tempPriceBounding = new Rect.fromLTRB(
           tempPriceBounding.left - requiredLeftShift,
           tempPriceBounding.top,
           tempPriceBounding.right - requiredLeftShift,
           tempPriceBounding.bottom);
-      //print("paragraph POINTS " + paragraphBounding.left.toString());
-      //print("TEMPPRICEBOUNDING POINTS " + tempPriceBounding.left.toString());
       Rect intersection = tempPriceBounding.intersect(paragraphBounding);
 
       double currentAreaOfIntersection =
           intersection.width * intersection.height;
 
-      //print("Overlap is " + currentAreaOfIntersection.toString() + "For Paragraph " + paragraph.text);
       sortingParasByOverlap[currentAreaOfIntersection] = paragraph;
       paragraphIndex++;
     }
 
 
     DocumentTextParagraph overlapParagraph = sortingParasByOverlap.values.last;
-    print("BIGGEST OVERLAP PARA WAS " +
-        sortingParasByOverlap.values.last.text +
-        "FOR PRICE " +
-        price);
 
     while (i < overlapParagraph.words.length &&
         list.length < 4 &&
@@ -322,9 +317,7 @@ class _HomePageState extends State<HomePage> {
       if (overlapParagraph.words.elementAt(i).text.trim().startsWith(
           new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))) {
         print(overlapParagraph.words.elementAt(i).text + "Matches");
-        print("List before " + list.toString());
         list.add(overlapParagraph.words.elementAt(i).text);
-        print("List After " + list.toString());
       }
       i++;
     }
@@ -334,10 +327,7 @@ class _HomePageState extends State<HomePage> {
         overlapParagraph.words.elementAt(i) != null) {
       if (overlapParagraph.words.elementAt(i).text.trim().startsWith(
           new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))) {
-        print(overlapParagraph.words.elementAt(i).text + "Matches");
-        print("List before " + list.toString());
         list.add(overlapParagraph.words.elementAt(i).text);
-        print("List After " + list.toString());
       }
     }
 
