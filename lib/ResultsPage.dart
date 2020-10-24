@@ -14,8 +14,6 @@ class Drink {
   double value; //Units per pound
 
   Drink(this.name, this.price, this.amount, this.percent) {
-    print("B:LAH" + this.name);
-    print("BHAL" + this.amount.toString());
     double alc = (percent/100) * amount;
     this.value = alc / price / 10;
   }
@@ -56,16 +54,31 @@ class _ResultsPageState extends State<ResultsPage> {
 
     var collectionReference = _fireStoreInstance.collection('Drinks');
     List<Drink> result = [];
+    QuerySnapshot snap;
     print("Length of fromMenu drinks is " + this.fromMenu.length.toString());
     for (int i = 0; i < this.fromMenu.length; i++) {
       print("iteration" + i.toString());
       if(this.fromMenu.elementAt(i).length > 1){
-      String name = this.fromMenu.elementAt(i).elementAt(1);
-      print("Searching for " + name);
-      var query = collectionReference.where("Name", isEqualTo: name);
-      print("awaiting query");
-      QuerySnapshot snap = await query.get();
-      print("queryreturns");
+        String name = "";
+      for(int k=fromMenu.elementAt(i).length ; k > 1 ; k--){
+        List<String> subList = this.fromMenu.elementAt(i).sublist(1,k);
+        name = "";
+        for(int y = 0;y<subList.length;y++){
+          name = name + subList.elementAt(y) + " ";
+        }
+
+        name = name.trim();
+        print(name);
+        print("Searching for " + name);
+        var query = collectionReference.where("Name", isEqualTo: name);
+        print("awaiting query");
+        snap = await query.get();
+        if(snap.docs.isNotEmpty){
+          print("found it!");
+          break;
+        }
+      }
+
       if (snap.docs.isNotEmpty) {
         print("Query not empty, data gained");
         print("NUMBER OF DOCS IS" + snap.docs.length.toString());
