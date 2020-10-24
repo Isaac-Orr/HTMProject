@@ -114,6 +114,13 @@ class _ResultsPageState extends State<ResultsPage> {
     return (outputList);
   }
 
+  AppBar resultsAppBar(){
+    return AppBar(
+      title: Text("Results"),
+      centerTitle: true,
+      backgroundColor: Color.fromARGB(255, 192, 57, 43),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     Future<List<Drink>> listOfDrinks = _getDrinks();
@@ -124,9 +131,7 @@ class _ResultsPageState extends State<ResultsPage> {
         print("test0");
         return drinksList.connectionState == ConnectionState.done ?
         Scaffold(
-            appBar: AppBar(
-              title: Text("Results"),
-            ),
+            appBar: resultsAppBar(),
             body: Container(
                 child: Container(
                     width: MediaQuery
@@ -153,8 +158,10 @@ class _ResultsPageState extends State<ResultsPage> {
 
 
                 )
-            )
-        ) : Center(child: CircularProgressIndicator(),);
+            ),
+
+
+        ) : Scaffold(backgroundColor: Colors.white,appBar: resultsAppBar(),body: Center(child: CircularProgressIndicator(),));
       },
     );
   }
