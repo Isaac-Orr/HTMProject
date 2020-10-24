@@ -95,9 +95,10 @@ class _ResultsPageState extends State<ResultsPage> {
     print(result.length);
     Comparator<Drink> compareValue = (a, b) => a.value.compareTo(b.value);
     result.sort(compareValue);
+    List<Drink> outputList = result.reversed.toList();
     print("returning list of drinks length" + result.length.toString());
     print(result.elementAt(0).name);
-    return (result);
+    return (outputList);
   }
 
   @override
