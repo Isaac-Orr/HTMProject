@@ -133,7 +133,7 @@ class _ResultsPageState extends State<ResultsPage> {
 
                       return ListTile(
                         title: Text(drink.name),
-                        subtitle: Text(drink.value.toStringAsFixed(2)),
+                        subtitle: Text(drink.value.toStringAsFixed(2) + " Units per £"),
                       );
                     },
                     )
