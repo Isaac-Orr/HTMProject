@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quiver/collection.dart';
+import 'package:recase/recase.dart';
 
 import 'ResultsPage.dart';
 
@@ -317,7 +318,8 @@ class _HomePageState extends State<HomePage> {
       if (overlapParagraph.words.elementAt(i).text.trim().startsWith(
           new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))) {
         print(overlapParagraph.words.elementAt(i).text + "Matches");
-        list.add(overlapParagraph.words.elementAt(i).text);
+        ReCase recase = new ReCase(overlapParagraph.words.elementAt(i).text);
+        list.add(recase.sentenceCase);
       }
       i++;
     }
@@ -327,13 +329,14 @@ class _HomePageState extends State<HomePage> {
         overlapParagraph.words.elementAt(i) != null) {
       if (overlapParagraph.words.elementAt(i).text.trim().startsWith(
           new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))) {
-        list.add(overlapParagraph.words.elementAt(i).text);
+        ReCase recase = new ReCase(overlapParagraph.words.elementAt(i).text);
+        list.add(recase.sentenceCase);
       }
     }
 
     list.insert(0, price);
     for (int position = 0; position<list.length; position++){
-      if (list.elementAt(position).startsWith("ABV")  || list.elementAt(position).startsWith("ASV") || list.elementAt(position).startsWith("ARV")) {
+      if (list.elementAt(position).startsWith("A")  && (list.elementAt(position).substring(2).startsWith("V") || list.elementAt(position).substring(2).startsWith("v"))) {
         list.removeAt(position);
       }
     }
