@@ -23,26 +23,31 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
-
+  ButtonStyle buttonStyle = ButtonStyle(backgroundColor: MaterialStateColor.resolveWith((states) => Color.fromARGB(255, 192, 57, 43)));
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<CameraDescription>(
       future: getCamera(),
       builder: (context, camera) {
         return Scaffold(
+          backgroundColor: Color.fromARGB(255, 39, 174, 96),
             appBar: AppBar(
-              title: Text("This is a title"),
+              title: Text("Alcohol/£ Analyser"),
+              centerTitle: true,
+              backgroundColor: Color.fromARGB(255, 192, 57, 43),
             ),
             body: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
-                  height: MediaQuery.of(context).size.height * .7,
+                  height: MediaQuery.of(context).size.height * .75,
                   width: MediaQuery.of(context).size.width,
                   child: cameraPreviewScreen(camera.data),
                 ),
                 ElevatedButton(
-                  child: RichText(text: TextSpan(text: "Show Results", style: TextStyle(color: Colors.teal))),
+                  style: buttonStyle,
+                  child: RichText(text: TextSpan(text: "Show Results", style: TextStyle(color: Colors.white))),
+
                   onPressed: () {showResults(context);},
                 ),
               ],
@@ -57,6 +62,8 @@ class _HomePageState extends State<HomePage> {
                   width: MediaQuery.of(context).size.width,
                   child: Center(
                     child: FloatingActionButton(
+                      backgroundColor: Color.fromARGB(255, 192, 57, 43),
+
                       child: Icon(Icons.camera_alt),
                       // Provide an onPressed callback.
                       onPressed: () async {

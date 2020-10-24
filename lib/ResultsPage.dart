@@ -101,6 +101,13 @@ class _ResultsPageState extends State<ResultsPage> {
     return (outputList);
   }
 
+  AppBar resultsAppBar(){
+    return AppBar(
+      title: Text("Results"),
+      centerTitle: true,
+      backgroundColor: Color.fromARGB(255, 192, 57, 43),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     Future<List<Drink>> listOfDrinks = _getDrinks();
@@ -111,9 +118,7 @@ class _ResultsPageState extends State<ResultsPage> {
         print("test0");
         return drinksList.connectionState == ConnectionState.done ?
         Scaffold(
-            appBar: AppBar(
-              title: Text("Results"),
-            ),
+            appBar: resultsAppBar(),
             body: Container(
                 child: Container(
                     width: MediaQuery
@@ -133,26 +138,45 @@ class _ResultsPageState extends State<ResultsPage> {
 
                       return ListTile(
                         title: Text(drink.name),
-                        subtitle: Text(drink.value.toStringAsFixed(2)),
+                        subtitle: Text(drink.value.toStringAsFixed(2) + " Units Per £"),
                       );
                     },
                     )
 
 
                 )
-            )
-        ) : Center(child: CircularProgressIndicator(),);
+            ),
+
+
+        ) : Scaffold(backgroundColor: Colors.white,appBar: resultsAppBar(),body: Center(child: CircularProgressIndicator(),));
       },
     );
   }
 
-  saveData(String pubName, List<String> list) async {
+  /*enterShopNameAndSave(BuildContext buildContext, List<Drink> drinksList){
+    TextEditingController controller = new TextEditingController();
+    return AlertDialog(
+      title: Text("What Pub Are You Saving For?"),
+      content: TextField(decoration: new InputDecoration(hintText: "Enter Pub Name"),controller: controller,),
+      actions: [
+        FlatButton(onPressed: () => {saveData(controller.text, drinksList), Navigator.pop(context)}, child: Text("Save")),
+        FlatButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),],
+    );
+  }*/
+
+  /*saveData(String pubName, List<Drink> list) async {
     final prefs = await SharedPreferences.getInstance();
     final key = pubName;
     final value = list;
-    prefs.setStringList(key, value);
+    List<String> stringList = new List<String>();
+
+    for(int i = 0;i<list.length;i++){
+      st
+      stringList.add(list.elementAt(i).name);
+    }
+    prefs.setStringList(key);
     print('saved $value to $key');
-  }
+  }*/
 
   readData() async {
     final prefs = await SharedPreferences.getInstance();
