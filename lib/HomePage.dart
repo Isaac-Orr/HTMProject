@@ -4,9 +4,11 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quiver/collection.dart';
 
@@ -42,7 +44,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(
                   child: RichText(text: TextSpan(text: "Show Results", style: TextStyle(color: Colors.teal))),
-                  onPressed: () {showResults(context);},
+                  onPressed: () {fixABVField();},
+                  //onPressed: () {showResults(context);},
                 ),
               ],
             ),
@@ -339,6 +342,67 @@ class _HomePageState extends State<HomePage> {
     }
     priceNameSorted.add(list);
   }
+
+
+  void fixABVField() async {
+    print("about to fix");
+    FirebaseApp firebaseApp = await Firebase.initializeApp();
+    FirebaseFirestore _instance = FirebaseFirestore.instance;
+    print("app initalised");
+
+
+
+
+
+
+    Query query = _instance.collection("Drinks").orderBy("Name").where("Type", isEqualTo: "Liquor").limit(10);
+    QuerySnapshot snapshot = await query.get();
+    for (int i = 0; i< 10; i++){
+      if(snapshot.docs.elementAt(i).data().length >3 ) {
+        DocumentReference docRef = snapshot.docs
+            .elementAt(i)
+            .reference;
+        double percent = double.parse(snapshot.docs.elementAt(i)["abv"]);
+        docRef.update({"%": percent});
+      }
+    }
+    QueryDocumentSnapshot last = snapshot.docs.last;
+    while(snapshot.size>1) {
+      print("Creating query");
+      query = _instance.collection("Drinks").orderBy("Name")
+          .where("Type", isEqualTo: "Liquor")
+          .startAfterDocument(last).limit(10);
+      print("Getting snapshot");
+      snapshot = await query.get();
+      print("got Snapshot");
+      List<DocumentSnapshot> counting= snapshot.docs;
+      print("length is "+ counting.length.toString());
+      for (int i = 0; i< counting.length; i++){
+        print("Loop beginning, creating ref");
+        DocumentReference docRef = snapshot.docs.elementAt(i).reference;
+        print("made ref, getting abv val");
+        try{
+          print(snapshot.docs.elementAt(i)["Name"]);
+          print(snapshot.docs.elementAt(i).data().length);
+          double percent = double.parse(snapshot.docs.elementAt(i)["abv"]);
+          print("Got val, updating doc");
+          docRef.update({"%": percent});
+          print("Fixing" + i.toString());
+        }catch(e){
+          print(e);
+        }
+
+
+
+      }
+      print("Setting last");
+      last = snapshot.docs.last;
+      print("Last set");
+    }
+    print("fixed");
+  }
+
+
 
   bool isRightCurrencyFormat(String word) {
     if (word.length == 4 && word.indexOf(".") == 1) {
