@@ -48,16 +48,16 @@ class _ResultsPageState extends State<ResultsPage> {
   }
 
   Future<List<Drink>> _getDrinks() async {
-    print("Called");
+
     FirebaseApp firebase = await Firebase.initializeApp();
     FirebaseFirestore _fireStoreInstance = FirebaseFirestore.instance;
 
     var collectionReference = _fireStoreInstance.collection('Drinks');
     List<Drink> result = [];
     QuerySnapshot snap;
-    print("Length of fromMenu drinks is " + this.fromMenu.length.toString());
+
     for (int i = 0; i < this.fromMenu.length; i++) {
-      print("iteration" + i.toString());
+
       if(this.fromMenu.elementAt(i).length > 1){
         String name = "";
       for(int k=fromMenu.elementAt(i).length ; k > 1 ; k--){
@@ -66,22 +66,16 @@ class _ResultsPageState extends State<ResultsPage> {
         for(int y = 0;y<subList.length;y++){
           name = name + subList.elementAt(y) + " ";
         }
-
         name = name.trim();
-        print(name);
-        print("Searching for " + name);
         var query = collectionReference.where("Name", isEqualTo: name);
-        print("awaiting query");
         snap = await query.get();
         if(snap.docs.isNotEmpty){
-          print("found it!");
           break;
         }
       }
 
       if (snap.docs.isNotEmpty) {
-        print("Query not empty, data gained");
-        print("NUMBER OF DOCS IS" + snap.docs.length.toString());
+
         for (DocumentSnapshot j in snap.docs) {
           double amount = 568;
           if (j.get("Type") == "Beer") {
@@ -90,27 +84,23 @@ class _ResultsPageState extends State<ResultsPage> {
           else if (j.get("Type") == "Liquor") {
             amount = 50;
           }
-          print("drink creating");
-          print(j.get("Name"));
-          print(j.get("%"));
+
           //Drink drink = new Drink(j.get("Name"), double.parse(this.fromMenu.elementAt(i).elementAt(0)), amount, j.get("%"));
           Drink drink = new Drink(j.get("Name"), double.parse(this.fromMenu.elementAt(i).elementAt(0)), amount, double.parse(j.get("%").toString()));
-          print("drink added");
+
           result.add(drink); //need to read the price and the amount from the menu
-          print(drink.name + " " + drink.percent.toString() + " " +
-              drink.value.toString());
+
         }
       } else{
-        print("no match in db");
+
       }
 
     }}
-    print(result.length);
+
     Comparator<Drink> compareValue = (a, b) => a.value.compareTo(b.value);
     result.sort(compareValue);
     List<Drink> outputList = result.reversed.toList();
-    print("returning list of drinks length" + result.length.toString());
-    print(result.elementAt(0).name);
+
     return (outputList);
   }
 
@@ -124,11 +114,11 @@ class _ResultsPageState extends State<ResultsPage> {
   @override
   Widget build(BuildContext context) {
     Future<List<Drink>> listOfDrinks = _getDrinks();
-    print("LEMON TEST");
+
     return FutureBuilder(
       future: listOfDrinks,
       builder: (context, drinksList) {
-        print("test0");
+
         return drinksList.connectionState == ConnectionState.done ?
         Scaffold(
             appBar: resultsAppBar(),
@@ -141,18 +131,28 @@ class _ResultsPageState extends State<ResultsPage> {
                     height: MediaQuery
                         .of(context)
                         .size
-                        .height * 0.7,
-                    child: ListView.builder(
+                        .height * 1,
+                    child: ListView.separated(
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.white,
+                        height: 15,
+                      ),
                       itemCount: drinksList.data.length,
                       itemBuilder: (context, index) {
-                      print(drinksList.data[index]);
-                      print("test 1");
+
                       final Drink drink = drinksList.data[index];
 
-                      return ListTile(
-                        title: Text(drink.name),
-                        subtitle: Text(drink.value.toStringAsFixed(2) + " Units per £"),
+                      return Container(
+                        
+                        decoration: BoxDecoration(color: Color.fromRGBO(194,39,35, 60), borderRadius: BorderRadius.circular(25), ),
+
+                        child: ListTile(
+                          title: Text(drink.name, style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(drink.value.toStringAsFixed(2) + " Units per £", style: TextStyle(fontWeight: FontWeight.w500),),
+                        ),
                       );
+
                     },
                     )
 
@@ -171,7 +171,7 @@ class _ResultsPageState extends State<ResultsPage> {
     final key = pubName;
     final value = list;
     prefs.setStringList(key, value);
-    print('saved $value to $key');
+
   }
 
   readData() async {
@@ -183,7 +183,7 @@ class _ResultsPageState extends State<ResultsPage> {
     while (i.moveNext()) {
       key = i.current;
       value = prefs.getStringList(key);
-      print('read $value from $key');
+
     }
   }
 

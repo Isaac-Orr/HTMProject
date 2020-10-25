@@ -96,8 +96,9 @@ class _HomePageState extends State<HomePage> {
       title: Text("Find Alchohol In Image?"),
       content: Image.file(File(imagePath)),
       actions: [
-        FlatButton(color: Colors.green ,onPressed: () => {getTextFromPicture(imagePath), Navigator.pop(context)}, child: Text("Yes")),
-        FlatButton(color: Colors.red ,onPressed: () => Navigator.pop(context), child: Text("No")),],
+        FlatButton(color: Colors.red ,onPressed: () => Navigator.pop(context), child: Text("No")),
+        FlatButton(color: Colors.green ,onPressed: () => {getTextFromPicture(imagePath, context), Navigator.pop(context)}, child: Text("Yes")),
+        ],
     );
   }
   FutureBuilder cameraPreviewScreen(CameraDescription camera) {
@@ -159,7 +160,7 @@ class _HomePageState extends State<HomePage> {
 
   List<DocumentTextParagraph> allParagraphs = new List<DocumentTextParagraph>();
 
-  getTextFromPicture(String path) async {
+  getTextFromPicture(String path, BuildContext context) async {
     final File imageFile = File(path);
 
     final FirebaseVisionImage visionImage =
@@ -193,8 +194,7 @@ class _HomePageState extends State<HomePage> {
           if (j > 0 && stringList.length > 0) {
             if (!isRightCurrencyFormat(
                 stringList.elementAt(stringList.length - 1))) {
-              print("Removing bc of percent" +
-                  stringList.elementAt(stringList.length - 1));
+
               stringList.removeLast();
             }
           }
@@ -202,7 +202,7 @@ class _HomePageState extends State<HomePage> {
         }
 
         if (currentWord.text.startsWith("£")) {
-          print(currentWord.text);
+
           if (currentWord.text.length == 1 &&
               currentParagraph.words.length < j + 1 &&
               currentParagraph.words.elementAt(j + 1).text != null) {
@@ -211,9 +211,7 @@ class _HomePageState extends State<HomePage> {
             String sanatisedPrice =
                 checkWordLengthAndSanatise(newWord, currentWord);
             if (sanatisedPrice != null) {
-              print("Break Type" +
-                  currentWord.recognizedBreak.detectedBreakType.index
-                      .toString());
+
               stringList.add(sanatisedPrice);
               createEntryWithName(sanatisedPrice, j, currentParagraph,i);
               j++;
@@ -230,9 +228,8 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ResultsPage(priceNameSorted)));
 
-    print(stringList.toString());
-    print(priceNameSorted);
 
     cloudDocumentTextRecognizer.close();
   }
@@ -250,7 +247,6 @@ class _HomePageState extends State<HomePage> {
         documentTextWord.recognizedBreak.detectedBreakType.index != 1 &&
         documentTextWord.recognizedBreak.detectedBreakType.index != 2 &&
         documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
-      print(4);
       return word;
     } else if (word.length == 5 &&
         word.indexOf(".") == 2 &&
@@ -258,7 +254,7 @@ class _HomePageState extends State<HomePage> {
         documentTextWord.recognizedBreak.detectedBreakType.index != 1 &&
         documentTextWord.recognizedBreak.detectedBreakType.index != 2 &&
         documentTextWord.recognizedBreak.detectedBreakType.index != 4) {
-      print(5);
+
       word = word.substring(1);
       return word;
     } else {
@@ -324,7 +320,7 @@ class _HomePageState extends State<HomePage> {
 
       if (overlapParagraph.words.elementAt(i).text.trim().startsWith(
           new RegExp(r"^[A-Z][a-zA-Z0-9]+$", caseSensitive: true))) {
-        print(overlapParagraph.words.elementAt(i).text + "Matches");
+
         ReCase recase = new ReCase(overlapParagraph.words.elementAt(i).text);
         list.add(recase.sentenceCase);
       }
